@@ -1,9 +1,7 @@
 # Alerta Ciudadana LosPepelepu
-
 <div style="display: flex; justify-content: space-between;">
-   <img src="https://raw.githubusercontent.com/PpGrillo1511/Alerta_Ciudadana_LosPepeIepu_Frontend/main/Logotipo.jpeg" width="200"/>
-
-    <img align="right" src="" />
+    <img align="left" src="Logotipo.jpeg" width="200"/>
+    <img align="right" src="Logotipo.jpeg" width="200"/>
 </div>
 
 <br><br><br><br><br><br>
