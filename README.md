@@ -1,7 +1,7 @@
 # Alerta Ciudadana LosPepelepu
 
 <div style="display: flex; justify-content: space-between;">
-    <img align="left" src=""/>
+    <img align="left" src="Logotipo.jpeg" width="200"/>
     <img align="right" src="" />
 </div>
 
