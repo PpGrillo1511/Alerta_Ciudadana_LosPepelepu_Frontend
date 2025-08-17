@@ -7,18 +7,19 @@ const sidebarOpen = ref(false);
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+  <!-- Fondo global blanco -->
+  <div class="min-h-screen bg-white">
     <!-- Sidebar -->
     <Sidebar v-model:open="sidebarOpen" />
-    
+
     <!-- Main Content -->
     <main class="p-6">
-      <!-- Header Banner -->
-      <div class="bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 rounded-2xl p-6 mb-8 relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-transparent"></div>
+      <!-- Header Banner (paleta nueva) -->
+      <div class="bg-gradient-to-r from-sky-500 via-cyan-500 to-indigo-500 rounded-2xl p-6 mb-8 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-transparent"></div>
         <div class="relative flex items-center justify-between">
           <div class="flex items-center space-x-4">
-            <button 
+            <button
               @click="sidebarOpen = true"
               class="p-2 rounded-xl bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-all"
             >
@@ -27,12 +28,12 @@ const sidebarOpen = ref(false);
               </svg>
             </button>
             <div class="flex items-center space-x-3">
-              <div class="w-12 h-12 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+              <div class="w-12 h-12 rounded-full bg-gradient-to-r from-sky-500 to-cyan-400 flex items-center justify-center text-white font-bold text-lg">
                 G
               </div>
               <div>
                 <h1 class="text-2xl font-bold text-white">¡Bienvenid@ Griselda Cabrera Franco!</h1>
-                <p class="text-purple-100">Gracias por contribuir a hacer de Xicotepec un lugar más seguro</p>
+                <p class="text-sky-100">Gracias por contribuir a hacer de Xicotepec un lugar más seguro</p>
               </div>
             </div>
           </div>
@@ -40,7 +41,7 @@ const sidebarOpen = ref(false);
             <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logo-N5NgJJ9kcwMeVSd6Gof1EzbuAkkl4L.jpeg" alt="Alerta Ciudadana" class="w-8 h-8 rounded-lg">
             <div class="text-right">
               <p class="text-white font-semibold">Alerta_ciudadana</p>
-              <p class="text-purple-100 text-sm">Sistema de Alertas</p>
+              <p class="text-sky-100 text-sm">Sistema de Alertas</p>
             </div>
           </div>
         </div>
