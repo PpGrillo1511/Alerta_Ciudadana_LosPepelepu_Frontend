@@ -1,3 +1,59 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const sidebarOpen = ref(false)
+const editingPersonal = ref(false)
+
+const personalInfo = ref({
+  firstName: 'Griselda',
+  lastName: 'Cabrera Franco',
+  email: 'griselda@email.com',
+  phone: '764 123 4567',
+  address: 'Calle Hidalgo #123, Centro, Xicotepec de Juárez, Puebla'
+})
+
+const passwordForm = ref({
+  current: '',
+  new: '',
+  confirm: ''
+})
+
+const notifications = ref({
+  email: true,
+  push: true,
+  sms: false
+})
+
+const savePersonalInfo = () => {
+  // Simulate API call
+  editingPersonal.value = false
+  alert('Información actualizada exitosamente')
+}
+
+const changePassword = () => {
+  if (passwordForm.value.new !== passwordForm.value.confirm) {
+    alert('Las contraseñas no coinciden')
+    return
+  }
+  
+  // Simulate API call
+  passwordForm.value = { current: '', new: '', confirm: '' }
+  alert('Contraseña cambiada exitosamente')
+}
+
+const navigateTo = (routeName: string) => {
+  router.push({ name: routeName })
+  sidebarOpen.value = false
+}
+
+const logout = () => {
+  localStorage.removeItem('token')
+  router.push('/login')
+}
+</script>
+
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
     <!-- Sidebar -->
@@ -18,52 +74,62 @@
         </div>
         
         <nav class="space-y-2">
-          <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-purple-800/50 hover:text-white transition-all">
+          <button 
+            @click="navigateTo('dashboard')"
+            class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-purple-800/50 hover:text-white transition-all w-full text-left"
+          >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
             </svg>
             <span class="font-medium">Dashboard</span>
-          </a>
+          </button>
           
-          <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-purple-800/50 hover:text-white transition-all">
+          <button 
+            @click="navigateTo('report')"
+            class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-purple-800/50 hover:text-white transition-all w-full text-left"
+          >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <span class="font-medium">Reportar Incidente</span>
-          </a>
+          </button>
           
-          <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-purple-800/50 hover:text-white transition-all">
+          <button 
+            @click="navigateTo('my-reports')"
+            class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-purple-800/50 hover:text-white transition-all w-full text-left"
+          >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
             <span class="font-medium">Mis Reportes</span>
-          </a>
+          </button>
           
-          <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-purple-800/50 hover:text-white transition-all">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            <span class="font-medium">Estadísticas</span>
-          </a>
-          
-          <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-purple-800/50 hover:text-white transition-all">
+          <button 
+            @click="navigateTo('map')"
+            class="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-purple-800/50 hover:text-white transition-all w-full text-left"
+          >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
             </svg>
             <span class="font-medium">Mapa de Incidentes</span>
-          </a>
+          </button>
           
-          <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+          <button 
+            class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+          >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
             </svg>
             <span class="font-medium">Mi Perfil</span>
-          </a>
+          </button>
         </nav>
         
         <div class="mt-8 pt-6 border-t border-purple-500/20">
-          <button class="flex items-center space-x-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-900/20 hover:text-red-300 transition-all w-full">
+          <button 
+            @click="logout"
+            class="flex items-center space-x-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-900/20 hover:text-red-300 transition-all w-full"
+          >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
             </svg>
@@ -82,31 +148,21 @@
 
     <!-- Main Content -->
     <div class="p-6">
-      <!-- Header -->
-      <div class="bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 rounded-2xl p-6 mb-8 relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-transparent"></div>
-        <div class="relative flex items-center justify-between">
-          <div class="flex items-center space-x-4">
-            <button 
-              @click="sidebarOpen = true"
-              class="p-2 rounded-xl bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-all"
-            >
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-              </svg>
-            </button>
-            <div>
-              <h1 class="text-2xl font-bold text-white">Mi Perfil</h1>
-              <p class="text-purple-100">Gestiona tu información personal y configuración</p>
-            </div>
+      <!-- Header Simplificado -->
+      <div class="mb-8">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-2xl font-bold text-white">Mi Perfil</h1>
+            <p class="text-purple-200">Gestiona tu información personal y configuración</p>
           </div>
-          <div class="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2">
-            <img src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logo-N5NgJJ9kcwMeVSd6Gof1EzbuAkkl4L.jpeg" alt="Alerta Ciudadana" class="w-8 h-8 rounded-lg">
-            <div class="text-right">
-              <p class="text-white font-semibold">Alerta_ciudadana</p>
-              <p class="text-purple-100 text-sm">Sistema de Alertas</p>
-            </div>
-          </div>
+          <button 
+            @click="sidebarOpen = true"
+            class="p-2 rounded-xl bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-all lg:hidden"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -331,52 +387,8 @@
 
       <!-- Footer -->
       <footer class="text-center py-6 mt-8">
-        <p class="text-gray-400">alerta_cuidadana para un Xicotepec más seguro 2025</p>
+        <p class="text-gray-400">alerta_ciudadana para un Xicotepec más seguro 2025</p>
       </footer>
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref } from 'vue'
-
-const sidebarOpen = ref(false)
-const editingPersonal = ref(false)
-
-const personalInfo = ref({
-  firstName: 'Griselda',
-  lastName: 'Cabrera Franco',
-  email: 'griselda@email.com',
-  phone: '764 123 4567',
-  address: 'Calle Hidalgo #123, Centro, Xicotepec de Juárez, Puebla'
-})
-
-const passwordForm = ref({
-  current: '',
-  new: '',
-  confirm: ''
-})
-
-const notifications = ref({
-  email: true,
-  push: true,
-  sms: false
-})
-
-const savePersonalInfo = () => {
-  // Simulate API call
-  editingPersonal.value = false
-  alert('Información actualizada exitosamente')
-}
-
-const changePassword = () => {
-  if (passwordForm.value.new !== passwordForm.value.confirm) {
-    alert('Las contraseñas no coinciden')
-    return
-  }
-  
-  // Simulate API call
-  passwordForm.value = { current: '', new: '', confirm: '' }
-  alert('Contraseña cambiada exitosamente')
-}
-</script>
