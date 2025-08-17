@@ -3,68 +3,72 @@
   <div>
     <!-- User Stats -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div class="bg-gradient-to-br from-slate-800/50 to-purple-900/30 backdrop-blur-xl rounded-2xl p-6 border border-purple-500/20">
+      <!-- Total Reportes -->
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
         <div class="flex items-center justify-between mb-4">
-          <div class="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600">
+          <div class="p-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
           </div>
-          <span class="text-2xl font-bold text-white">{{ myReports.length }}</span>
+          <span class="text-2xl font-bold text-slate-900">{{ myReports.length }}</span>
         </div>
-        <h3 class="text-gray-300 font-medium mb-1">Total Reportes</h3>
-        <p class="text-blue-400 text-sm">Desde enero 2025</p>
+        <h3 class="text-slate-600 font-medium mb-1">Total Reportes</h3>
+        <p class="text-cyan-600 text-sm">Desde enero 2025</p>
       </div>
 
-      <div class="bg-gradient-to-br from-slate-800/50 to-purple-900/30 backdrop-blur-xl rounded-2xl p-6 border border-purple-500/20">
+      <!-- Resueltos -->
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
         <div class="flex items-center justify-between mb-4">
-          <div class="p-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600">
+          <div class="p-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
           </div>
-          <span class="text-2xl font-bold text-white">{{ resolvedCount }}</span>
+          <span class="text-2xl font-bold text-slate-900">{{ resolvedCount }}</span>
         </div>
-        <h3 class="text-gray-300 font-medium mb-1">Resueltos</h3>
-        <p class="text-green-400 text-sm">{{ effectiveness }}% de efectividad</p>
+        <h3 class="text-slate-600 font-medium mb-1">Resueltos</h3>
+        <p class="text-emerald-600 text-sm">{{ effectiveness }}% de efectividad</p>
       </div>
 
-      <div class="bg-gradient-to-br from-slate-800/50 to-purple-900/30 backdrop-blur-xl rounded-2xl p-6 border border-purple-500/20">
+      <!-- Pendientes -->
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
         <div class="flex items-center justify-between mb-4">
-          <div class="p-3 rounded-xl bg-gradient-to-r from-yellow-500 to-orange-600">
+          <div class="p-3 rounded-xl bg-gradient-to-r from-amber-400 to-orange-400">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
           </div>
-          <span class="text-2xl font-bold text-white">{{ pendingCount }}</span>
+          <span class="text-2xl font-bold text-slate-900">{{ pendingCount }}</span>
         </div>
-        <h3 class="text-gray-300 font-medium mb-1">Pendientes</h3>
-        <p class="text-yellow-400 text-sm">En proceso</p>
+        <h3 class="text-slate-600 font-medium mb-1">Pendientes</h3>
+        <p class="text-amber-600 text-sm">En proceso</p>
       </div>
 
-      <div class="bg-gradient-to-br from-slate-800/50 to-purple-900/30 backdrop-blur-xl rounded-2xl p-6 border border-purple-500/20">
+      <!-- Más Reportado -->
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
         <div class="flex items-center justify-between mb-4">
-          <div class="p-3 rounded-xl bg-gradient-to-r from-red-500 to-pink-600">
+          <div class="p-3 rounded-xl bg-gradient-to-r from-rose-500 to-orange-400">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
             </svg>
           </div>
-          <span class="text-2xl font-bold text-white">{{ mostReported }}</span>
+          <span class="text-2xl font-bold text-slate-900">{{ mostReported }}</span>
         </div>
-        <h3 class="text-gray-300 font-medium mb-1">Más Reportado</h3>
-        <p class="text-red-400 text-sm">{{ mostReportedCount }} reportes</p>
+        <h3 class="text-slate-600 font-medium mb-1">Más Reportado</h3>
+        <p class="text-rose-600 text-sm">{{ mostReportedCount }} reportes</p>
       </div>
     </div>
 
     <!-- Reports Table -->
-    <div class="bg-gradient-to-br from-slate-800/50 to-purple-900/30 backdrop-blur-xl rounded-2xl border border-purple-500/20 overflow-hidden">
-      <div class="p-6 border-b border-purple-500/20">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-6 border-b border-slate-200">
         <div class="flex items-center justify-between">
-          <h3 class="text-xl font-bold text-white">Historial de Reportes</h3>
+          <h3 class="text-xl font-bold text-slate-900">Historial de Reportes</h3>
           <div class="flex items-center space-x-4">
-            <select 
-              v-model="selectedFilter" 
-              class="px-4 py-2 rounded-xl bg-slate-700/50 border border-purple-500/30 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            <select
+              v-model="selectedFilter"
+              class="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
             >
               <option value="all">Todos</option>
               <option value="pending">Pendientes</option>
@@ -75,70 +79,70 @@
               v-model="searchQuery"
               type="text"
               placeholder="Buscar reportes..."
-              class="px-4 py-2 rounded-xl bg-slate-700/50 border border-purple-500/30 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              class="px-4 py-2 rounded-xl bg-white border border-slate-300 text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
             >
           </div>
         </div>
       </div>
-      
+
       <div class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-slate-800/50">
+          <thead class="bg-slate-50">
             <tr>
-              <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Tipo</th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Descripción</th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Ubicación</th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Fecha</th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Estado</th>
-              <th class="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Acciones</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tipo</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Descripción</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ubicación</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Fecha</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Estado</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-purple-500/20">
-            <tr 
-              v-for="report in filteredReports" 
-              :key="report.id" 
-              class="hover:bg-slate-800/30 transition-colors"
+          <tbody class="divide-y divide-slate-200">
+            <tr
+              v-for="report in filteredReports"
+              :key="report.id"
+              class="hover:bg-slate-50 transition-colors"
             >
               <td class="px-6 py-4 whitespace-nowrap">
                 <span :class="[
-                  'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                  report.type === 'Atropellamiento' ? 'bg-red-900/50 text-red-300 border border-red-500/30' :
-                  report.type === 'Robo' ? 'bg-orange-900/50 text-orange-300 border border-orange-500/30' :
-                  report.type === 'Accidente' ? 'bg-yellow-900/50 text-yellow-300 border border-yellow-500/30' :
-                  'bg-purple-900/50 text-purple-300 border border-purple-500/30'
+                  'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border',
+                  report.type === 'Atropellamiento' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                  report.type === 'Robo' ? 'bg-cyan-50 text-cyan-700 border-cyan-200' :
+                  report.type === 'Accidente' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                  'bg-indigo-50 text-indigo-700 border-indigo-200'
                 ]">
                   {{ report.type }}
                 </span>
               </td>
               <td class="px-6 py-4">
-                <div class="text-sm text-white max-w-xs truncate">{{ report.description }}</div>
+                <div class="text-sm text-slate-900 max-w-xs truncate">{{ report.description }}</div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{{ report.location }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{{ report.location }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
                 <div>{{ report.date }}</div>
-                <div class="text-xs text-gray-500">{{ report.time }}</div>
+                <div class="text-xs text-slate-400">{{ report.time }}</div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span :class="[
-                  'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                  report.status === 'Resuelto' ? 'bg-green-900/50 text-green-300 border border-green-500/30' :
-                  report.status === 'Pendiente' ? 'bg-yellow-900/50 text-yellow-300 border border-yellow-500/30' :
-                  'bg-blue-900/50 text-blue-300 border border-blue-500/30'
+                  'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border',
+                  report.status === 'Resuelto' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                  report.status === 'Pendiente' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                  'bg-sky-50 text-sky-700 border-sky-200'
                 ]">
                   {{ report.status }}
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button 
+                <button
                   @click="viewReport(report.id)"
-                  class="text-purple-400 hover:text-purple-300 mr-3 transition-colors"
+                  class="text-cyan-600 hover:text-cyan-700 mr-3 transition-colors"
                 >
                   Ver
                 </button>
-                <button 
-                  v-if="report.status === 'Pendiente'" 
+                <button
+                  v-if="report.status === 'Pendiente'"
                   @click="editReport(report.id)"
-                  class="text-blue-400 hover:text-blue-300 transition-colors"
+                  class="text-indigo-600 hover:text-indigo-700 transition-colors"
                 >
                   Editar
                 </button>
@@ -150,6 +154,7 @@
     </div>
   </div>
 </template>
+
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
@@ -224,7 +229,7 @@ const filteredReports = computed<Report[]>(() => {
 
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(report => 
+    filtered = filtered.filter(report =>
       report.type.toLowerCase().includes(query) ||
       report.description.toLowerCase().includes(query) ||
       report.location.toLowerCase().includes(query)
