@@ -64,16 +64,7 @@
       <!-- Trend Chart -->
       <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
         <h3 class="text-xl font-bold text-slate-900 mb-6">Tendencia de Incidentes</h3>
-        <div class="h-64 flex items-center justify-center">
-          <div class="text-center">
-            <div class="w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 flex items-center justify-center">
-              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-              </svg>
-            </div>
-            <p class="text-slate-600">Gráfica de tendencias mensuales</p>
-          </div>
-        </div>
+        <div id="chartdiv" style="width: 100%; height: 500px;"></div>
       </div>
 
       <!-- Distribution Chart -->
@@ -178,5 +169,112 @@
 </template>
 
 <script setup lang="ts">
-// Lógica específica del dashboard si es necesaria
+import { onMounted, onBeforeUnmount } from 'vue';
+
+let root: any = null;
+
+const nombresCalles: Record<number, string> = {
+  0: "Av. Juárez",
+  1: "Calle Hidalgo",
+  2: "Av. Central",
+  3: "5 de Mayo",
+  4: "Reforma",
+  5: "Independencia",
+  6: "Calle Zaragoza",
+};
+
+async function fetchZonasCriticas() {
+  try {
+    const res = await fetch("http://127.0.0.1:8000/ml/zonas-criticas");
+    const data = await res.json();
+    if (!data.zonas_criticas) return [];
+
+    return data.zonas_criticas.map((zona: any) => ({
+      country: nombresCalles[zona.zona_id] || `Zona ${zona.zona_id}`,
+      value: zona.cantidad_incidentes                                
+    }));
+  } catch (err) {
+    console.error("Error al obtener zonas críticas:", err);
+    return [];
+  }
+}
+
+async function initChart() {
+  const am5 = (window as any).am5;
+  const am5xy = (window as any).am5xy;
+  const am5themes_Animated = (window as any).am5themes_Animated;
+
+  if (!am5 || !am5xy || !am5themes_Animated) return;
+
+  root = am5.Root.new("chartdiv");
+  root.setThemes([am5themes_Animated.new(root)]);
+
+  const chart = root.container.children.push(
+    am5xy.XYChart.new(root, { panX: true, panY: true, wheelX: "none", wheelY: "none", paddingLeft: 0 })
+  );
+
+  chart.zoomOutButton.set("forceHidden", true);
+
+  const xRenderer = am5xy.AxisRendererX.new(root, { minGridDistance: 30, minorGridEnabled: true });
+  xRenderer.labels.template.setAll({ rotation: -90, centerY: am5.p50, centerX: 0, paddingRight: 15 });
+  xRenderer.grid.template.set("visible", false);
+
+  const xAxis = chart.xAxes.push(
+    am5xy.CategoryAxis.new(root, { maxDeviation: 0.3, categoryField: "country", renderer: xRenderer })
+  );
+
+  const yAxis = chart.yAxes.push(
+    am5xy.ValueAxis.new(root, { maxDeviation: 0.3, min: 0, renderer: am5xy.AxisRendererY.new(root, {}) })
+  );
+
+  const series = chart.series.push(
+    am5xy.ColumnSeries.new(root, { name: "Zonas Críticas", xAxis, yAxis, valueYField: "value", categoryXField: "country" })
+  );
+
+  series.columns.template.setAll({ cornerRadiusTL: 5, cornerRadiusTR: 5, strokeOpacity: 0 });
+  series.columns.template.adapters.add("fill", (fill: any, target: any) => chart.get("colors").getIndex(series.columns.indexOf(target)));
+  series.columns.template.adapters.add("stroke", (stroke: any, target: any) => chart.get("colors").getIndex(series.columns.indexOf(target)));
+
+  series.bullets.push(() =>
+    am5.Bullet.new(root, {
+      locationY: 1,
+      sprite: am5.Label.new(root, {
+        text: "{valueYWorking.formatNumber('#.')}",
+        fill: root.interfaceColors.get("alternativeText"),
+        centerY: 0,
+        centerX: am5.p50,
+        populateText: true
+      })
+    })
+  );
+
+  // Obtener datos de la API
+  const chartData = await fetchZonasCriticas();
+  xAxis.data.setAll(chartData);
+  series.data.setAll(chartData);
+
+  // Animación inicial
+  series.appear(1000);
+  chart.appear(1000, 100);
+}
+
+onMounted(() => {
+  // Carga de scripts amCharts
+  const script1 = document.createElement('script');
+  script1.src = "https://cdn.amcharts.com/lib/5/index.js";
+  script1.onload = initChart;
+  document.body.appendChild(script1);
+
+  const script2 = document.createElement('script');
+  script2.src = "https://cdn.amcharts.com/lib/5/xy.js";
+  document.body.appendChild(script2);
+
+  const script3 = document.createElement('script');
+  script3.src = "https://cdn.amcharts.com/lib/5/themes/Animated.js";
+  document.body.appendChild(script3);
+});
+
+onBeforeUnmount(() => {
+  if (root) root.dispose();
+});
 </script>

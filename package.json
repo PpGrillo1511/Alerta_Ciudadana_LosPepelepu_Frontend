@@ -16,8 +16,10 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@amcharts/amcharts5": "^5.13.5",
     "axios": "^1.11.0",
     "install": "^0.13.0",
+    "mapbox-gl": "^3.14.0",
     "pinia": "^3.0.3",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"

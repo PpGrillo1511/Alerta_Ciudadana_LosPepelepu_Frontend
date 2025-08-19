@@ -1,6 +1,24 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import mapboxgl from 'mapbox-gl'
+
+// Token de Mapbox (pon tu token aquí)
+mapboxgl.accessToken = 'pk.eyJ1IjoiYWJkaWVscml2ZXJlIiwiYSI6ImNtZWhvdXJzYzA2dmEybG9qc3lrNWRtdHEifQ.a3Sjdy_10n17ROclWnlyTg'
+
+const mapContainer = ref<HTMLDivElement | null>(null)
+let map: mapboxgl.Map
+
+onMounted(() => {
+  if (mapContainer.value) {
+    map = new mapboxgl.Map({
+      container: mapContainer.value,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [-97.9564, 19.9789], // Coordenadas iniciales Xicotepec
+      zoom: 14
+    })
+  }
+})
 
 // ─────────────────────────────────────────────────────────────
 // TIPOS
@@ -22,99 +40,47 @@ const selectedFilters = reactive<Record<FilterKey, boolean>>({
   eventos: true
 })
 
-// Datos simulados de incidentes
-const incidents = ref([
-  {
-    id: 1,
-    type: 'Robo',
-    location: 'Av. Juárez y 5 de Mayo',
-    coordinates: [19.9789, -97.9564],
-    date: '2025-01-15',
-    status: 'Activo',
-    severity: 'Alto'
-  },
-  {
-    id: 2,
-    type: 'Accidente',
-    location: 'Calle Hidalgo 123',
-    coordinates: [19.9792, -97.9568],
-    date: '2025-01-14',
-    status: 'Resuelto',
-    severity: 'Medio'
-  },
-  {
-    id: 3,
-    type: 'Vandalismo',
-    location: 'Plaza Principal',
-    coordinates: [19.9785, -97.9560],
-    date: '2025-01-13',
-    status: 'En proceso',
-    severity: 'Bajo'
-  }
-])
+// ─────────────────────────────────────────────────────────────
+// Datos de incidentes
+const incidents = ref<any[]>([])
 
+// Función para obtener los incidentes desde la API
+const fetchIncidents = async () => {
+  try {
+    const res = await fetch('http://127.0.0.1:8000/incidentes_prioridad')
+    const data = await res.json()
+
+    // Mapear los campos para que coincidan con la UI
+    incidents.value = data.map((inc: any) => ({
+      id: inc.id,
+      type: inc.descripcion,
+      location: 'Ubicación desconocida', // si tu API no tiene ubicación
+      date: inc.fecha_reporte,
+      status: 'Activo', // o ajustar según otra lógica si hay estado
+      severity: inc.prioridad === 'alta' ? 'Alto' : inc.prioridad === 'media' ? 'Medio' : 'Bajo'
+    }))
+  } catch (error) {
+    console.error('Error al cargar los incidentes:', error)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
 // Calles peligrosas
 const dangerousStreets = ref([
-  {
-    id: 1,
-    name: 'Av. Revolución (Tramo Centro)',
-    reason: 'Múltiples robos reportados',
-    level: 'Alto',
-    coordinates: [19.9788, -97.9562]
-  },
-  {
-    id: 2,
-    name: 'Calle Morelos (Noche)',
-    reason: 'Poca iluminación',
-    level: 'Medio',
-    coordinates: [19.9790, -97.9565]
-  }
+  { id: 1, name: 'Av. Revolución (Tramo Centro)', reason: 'Múltiples robos reportados', level: 'Alto', coordinates: [19.9788, -97.9562] },
+  { id: 2, name: 'Calle Morelos (Noche)', reason: 'Poca iluminación', level: 'Medio', coordinates: [19.9790, -97.9565] }
 ])
 
 // Calles cerradas y eventos
 const closedStreets = ref([
-  {
-    id: 1,
-    name: 'Av. Juárez (Centro)',
-    reason: 'Desfile Patrio',
-    startDate: '2025-09-16',
-    endDate: '2025-09-16',
-    startTime: '09:00',
-    endTime: '14:00',
-    coordinates: [19.9789, -97.9564]
-  },
-  {
-    id: 2,
-    name: 'Plaza Principal',
-    reason: 'Festival de la Flor',
-    startDate: '2025-03-15',
-    endDate: '2025-03-17',
-    startTime: '08:00',
-    endTime: '22:00',
-    coordinates: [19.9785, -97.9560]
-  }
+  { id: 1, name: 'Av. Juárez (Centro)', reason: 'Desfile Patrio', startDate: '2025-09-16', endDate: '2025-09-16', startTime: '09:00', endTime: '14:00', coordinates: [19.9789, -97.9564] },
+  { id: 2, name: 'Plaza Principal', reason: 'Festival de la Flor', startDate: '2025-03-15', endDate: '2025-03-17', startTime: '08:00', endTime: '22:00', coordinates: [19.9785, -97.9560] }
 ])
 
 // Eventos próximos
 const upcomingEvents = ref([
-  {
-    id: 1,
-    title: 'Desfile de Independencia',
-    date: '2025-09-16',
-    time: '09:00 - 14:00',
-    location: 'Av. Juárez',
-    type: 'Desfile',
-    daysUntil: 238
-  },
-  {
-    id: 2,
-    title: 'Festival de la Flor',
-    date: '2025-03-15',
-    time: '08:00 - 22:00',
-    location: 'Plaza Principal',
-    type: 'Festival',
-    daysUntil: 54
-  }
+  { id: 1, title: 'Desfile de Independencia', date: '2025-09-16', time: '09:00 - 14:00', location: 'Av. Juárez', type: 'Desfile', daysUntil: 238 },
+  { id: 2, title: 'Festival de la Flor', date: '2025-03-15', time: '08:00 - 22:00', location: 'Plaza Principal', type: 'Festival', daysUntil: 54 }
 ])
 
 // ─────────────────────────────────────────────────────────────
@@ -145,7 +111,6 @@ const getStatusColor = (status: string) => {
   }
 }
 
-
 // Navegación
 const navigateTo = (routeName: string) => {
   router.push({ name: routeName })
@@ -157,10 +122,17 @@ const logout = () => {
   router.push('/login')
 }
 
+// ─────────────────────────────────────────────────────────────
+// Cargar incidentes al montar el componente y actualizar cada minuto
 onMounted(() => {
   console.log('[v0] Mapa de incidentes inicializado para Xicotepec de Juárez, Puebla')
+  fetchIncidents()
+  const interval = setInterval(fetchIncidents, 60000) // refrescar cada 60s
+  onBeforeUnmount(() => clearInterval(interval))
 })
 </script>
+
+
 <template>
   <div class="min-h-screen bg-white">
     <!-- Sidebar (igual) -->
@@ -309,35 +281,36 @@ onMounted(() => {
                   <span class="text-sm text-slate-700">Eventos</span>
                 </div>
               </div>
+              <div ref="mapContainer" class="w-full h-96"></div>
             </div>
 
-            <!-- Incidentes recientes (igual) -->
-            <div class="p-6 border-t border-slate-200">
-              <h4 class="font-bold text-slate-900 mb-4">Incidentes Recientes</h4>
-              <div class="space-y-3 max-h-40 overflow-y-auto">
-                <div
-                  v-for="incident in incidents"
-                  :key="incident.id"
-                  class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200"
-                >
-                  <div class="flex-1">
-                    <div class="flex items-center space-x-2">
-                      <span class="font-medium text-slate-900">{{ incident.type }}</span>
-                      <span :class="['text-xs px-2 py-1 rounded-full border', getSeverityColor(incident.severity)]">
-                        {{ incident.severity }}
-                      </span>
-                    </div>
-                    <p class="text-sm text-slate-600 mt-1">📍 {{ incident.location }}</p>
-                    <p class="text-xs text-slate-400">{{ formatDate(incident.date) }}</p>
-                  </div>
-                  <span :class="['text-xs px-2 py-1 rounded-full border', getStatusColor(incident.status)]">
-                    {{ incident.status }}
+            <!-- Incidentes recientes -->
+        <div class="p-6 border-t border-slate-200">
+          <h4 class="font-bold text-slate-900 mb-4">Incidentes Recientes</h4>
+          <div class="space-y-3 max-h-40 overflow-y-auto">
+            <div
+              v-for="incident in incidents"
+              :key="incident.id"
+              class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200"
+            >
+              <div class="flex-1">
+                <div class="flex items-center space-x-2">
+                  <span class="font-medium text-slate-900">{{ incident.type }}</span>
+                  <span :class="['text-xs px-2 py-1 rounded-full border', getSeverityColor(incident.severity)]">
+                    {{ incident.severity }}
                   </span>
                 </div>
+                <p class="text-sm text-slate-600 mt-1">📍 {{ incident.location }}</p>
+                <p class="text-xs text-slate-400">{{ formatDate(incident.date) }}</p>
               </div>
+              <span :class="['text-xs px-2 py-1 rounded-full border', getStatusColor(incident.status)]">
+                {{ incident.status }}
+              </span>
             </div>
           </div>
         </div>
+      </div>
+    </div>
       </div>
 
       <!-- Alertas de Calles Cerradas -->
