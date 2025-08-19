@@ -173,26 +173,38 @@ import { onMounted, onBeforeUnmount } from 'vue';
 
 let root: any = null;
 
-const nombresCalles: Record<number, string> = {
-  0: "Av. Juárez",
-  1: "Calle Hidalgo",
-  2: "Av. Central",
-  3: "5 de Mayo",
-  4: "Reforma",
-  5: "Independencia",
-  6: "Calle Zaragoza",
-};
+// Función para obtener el nombre de la calle desde coordenadas
+async function obtenerCalle(lat: number, lon: number) {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+    const data = await res.json();
+    return data.address?.road || "Zona desconocida";
+  } catch (err) {
+    console.error("Error al obtener calle:", err);
+    return "Zona desconocida";
+  }
+}
 
+// Obtener zonas críticas con nombres de calles
 async function fetchZonasCriticas() {
   try {
     const res = await fetch("http://127.0.0.1:8000/ml/zonas-criticas");
     const data = await res.json();
     if (!data.zonas_criticas) return [];
 
-    return data.zonas_criticas.map((zona: any) => ({
-      country: nombresCalles[zona.zona_id] || `Zona ${zona.zona_id}`,
-      value: zona.cantidad_incidentes                                
-    }));
+    // Mapear zonas y obtener nombre de calle para cada una
+    const zonasConCalles = await Promise.all(
+      data.zonas_criticas.map(async (zona: any) => {
+        // Si tu API ya devuelve lat/lon usa estos, si no, usa zona.zona_id solo
+        const calle = zona.lat && zona.lon ? await obtenerCalle(zona.lat, zona.lon) : `Zona ${zona.zona_id}`;
+        return {
+          country: calle,
+          value: zona.cantidad_incidentes
+        };
+      })
+    );
+
+    return zonasConCalles;
   } catch (err) {
     console.error("Error al obtener zonas críticas:", err);
     return [];
@@ -205,6 +217,9 @@ async function initChart() {
   const am5themes_Animated = (window as any).am5themes_Animated;
 
   if (!am5 || !am5xy || !am5themes_Animated) return;
+
+  // Obtener datos de la API con nombres de calles antes de crear el chart
+  const chartData = await fetchZonasCriticas();
 
   root = am5.Root.new("chartdiv");
   root.setThemes([am5themes_Animated.new(root)]);
@@ -248,30 +263,30 @@ async function initChart() {
     })
   );
 
-  // Obtener datos de la API
-  const chartData = await fetchZonasCriticas();
+  // Setear datos
   xAxis.data.setAll(chartData);
   series.data.setAll(chartData);
 
-  // Animación inicial
   series.appear(1000);
   chart.appear(1000, 100);
 }
 
 onMounted(() => {
-  // Carga de scripts amCharts
-  const script1 = document.createElement('script');
-  script1.src = "https://cdn.amcharts.com/lib/5/index.js";
-  script1.onload = initChart;
-  document.body.appendChild(script1);
+  // Cargar scripts de amCharts en orden
+  const loadScript = (src: string) =>
+    new Promise<void>((resolve) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.onload = () => resolve();
+      document.body.appendChild(script);
+    });
 
-  const script2 = document.createElement('script');
-  script2.src = "https://cdn.amcharts.com/lib/5/xy.js";
-  document.body.appendChild(script2);
-
-  const script3 = document.createElement('script');
-  script3.src = "https://cdn.amcharts.com/lib/5/themes/Animated.js";
-  document.body.appendChild(script3);
+  // Cargar secuencialmente
+  loadScript("https://cdn.amcharts.com/lib/5/index.js")
+    .then(() => loadScript("https://cdn.amcharts.com/lib/5/xy.js"))
+    .then(() => loadScript("https://cdn.amcharts.com/lib/5/themes/Animated.js"))
+    .then(() => initChart())
+    .catch((err) => console.error("Error cargando scripts de amCharts:", err));
 });
 
 onBeforeUnmount(() => {
