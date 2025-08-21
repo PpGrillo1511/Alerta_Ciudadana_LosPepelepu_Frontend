@@ -7,26 +7,19 @@
       <p class="text-slate-600 mb-6">Ayuda a mantener Xicotepec seguro reportando incidentes</p>
 
       <form @submit.prevent="submitReport" class="space-y-8">
-        <!-- Tipo de Incidente -->
+        <!-- Título -->
         <div>
-          <label class="block text-lg font-semibold text-slate-900 mb-4">Tipo de Incidente</label>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <button
-              v-for="type in incidentTypes"
-              :key="type.id"
-              type="button"
-              @click="selectedType = type.id"
-              :class="[
-                'p-4 rounded-xl border-2 transition-all text-center',
-                selectedType === type.id
-                  ? 'border-cyan-500 bg-cyan-50 text-cyan-700'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-cyan-300 hover:bg-cyan-50'
-              ]"
-            >
-              <div class="text-2xl mb-2">{{ type.icon }}</div>
-              <div class="font-medium">{{ type.name }}</div>
-            </button>
-          </div>
+          <label for="titulo" class="block text-lg font-semibold text-slate-900 mb-4">
+            Título del Incidente
+          </label>
+          <input
+            v-model="titulo"
+            id="titulo"
+            type="text"
+            required
+            placeholder="Escribe un título para el incidente..."
+            class="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+          />
         </div>
 
         <!-- Descripción -->
@@ -44,6 +37,24 @@
             placeholder="Describe detalladamente lo que estás viendo o lo que ocurrió..."
           ></textarea>
           <p class="mt-2 text-sm text-slate-500">{{ description.length }}/500 caracteres</p>
+        </div>
+
+        <!-- Tipo de Incidente -->
+        <div>
+          <label for="category" class="block text-lg font-semibold text-slate-900 mb-4">
+            Categoría
+          </label>
+          <select
+            v-model="selectedCategory"
+            id="category"
+            required
+            class="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+          >
+            <option value="" disabled>-- Selecciona una categoría --</option>
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+              {{ cat.nombre }}
+            </option>
+          </select>
         </div>
 
         <!-- Fecha y Hora -->
@@ -101,6 +112,26 @@
             >
           </div>
         </div>
+
+        <!-- Estado del Incidente -->
+        <div>
+          <label for="estado" class="block text-lg font-semibold text-slate-900 mb-4">
+            Estado
+          </label>
+          <select
+            v-model="selectedEstado"
+            id="estado"
+            required
+            class="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+          >
+            <option value="" disabled>-- Selecciona el estado --</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="en_revision">En Revisión</option>
+            <option value="atendido">Atendido</option>
+            <option value="descartado">Descartado</option>
+          </select>
+        </div>
+
 
         <!-- Foto -->
         <div>
@@ -204,8 +235,6 @@
   </div>
 </template>
 
-
-
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -213,11 +242,14 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 // Datos del formulario
-const selectedType = ref('')
+const selectedCategory = ref<number | null>(null)
+const titulo = ref('')
 const description = ref('')
 const selectedDate = ref('')
 const selectedTime = ref('')
 const location = ref('')
+const selectedEstado = ref('')
+
 
 // Archivos
 const fileInput = ref<HTMLInputElement | null>(null)
@@ -225,21 +257,10 @@ const selectedFile = ref<File | null>(null)
 const filePreview = ref('')
 
 // Estados
+const categories = ref<{ id: number; nombre: string; descripcion: string }[]>([])
 const gettingLocation = ref(false)
 const isSubmitting = ref(false)
 const showConfirmation = ref(false)
-
-// Tipos de incidente
-const incidentTypes = [
-  { id: 'atropellamiento', name: 'Atropellamiento', icon: '🚗' },
-  { id: 'robo', name: 'Robo', icon: '💰' },
-  { id: 'accidente', name: 'Accidente', icon: '⚠️' },
-  { id: 'vandalismo', name: 'Vandalismo', icon: '🔨' },
-  { id: 'violencia', name: 'Violencia', icon: '👊' },
-  { id: 'drogas', name: 'Drogas', icon: '💊' },
-  { id: 'incendio', name: 'Incendio', icon: '🔥' },
-  { id: 'otro', name: 'Otro', icon: '❓' }
-]
 
 // Fecha actual
 const today = new Date().toISOString().split('T')[0]
@@ -247,7 +268,7 @@ const today = new Date().toISOString().split('T')[0]
 // Validación del formulario
 const isFormValid = computed(() => {
   return (
-    selectedType.value &&
+    selectedCategory.value !== null &&
     description.value.trim() &&
     selectedDate.value &&
     selectedTime.value &&
@@ -255,11 +276,21 @@ const isFormValid = computed(() => {
   )
 })
 
-// Inicializar fecha y hora
-onMounted(() => {
+// Inicializar fecha, hora y cargar categorías
+onMounted(async () => {
   const now = new Date()
   selectedDate.value = now.toISOString().split('T')[0]
   selectedTime.value = now.toTimeString().slice(0, 5)
+
+  // Obtener categorías desde el backend
+  try {
+    const res = await fetch("http://127.0.0.1:8000/categorias/")
+    if (!res.ok) throw new Error("Error al cargar categorías")
+    categories.value = await res.json()
+  } catch (err) {
+    console.error(err)
+    alert("No se pudieron cargar las categorías")
+  }
 })
 
 // Obtener ubicación actual
@@ -309,7 +340,7 @@ const removeFile = () => {
 // Guardar borrador
 const saveDraft = () => {
   const draft = {
-    type: selectedType.value,
+    category: selectedCategory.value,
     description: description.value,
     date: selectedDate.value,
     time: selectedTime.value,
@@ -320,24 +351,60 @@ const saveDraft = () => {
   alert('Borrador guardado exitosamente')
 }
 
-// Enviar reporte
+// Enviar reporte a la API
 const submitReport = async () => {
   if (!isFormValid.value) return
-
   isSubmitting.value = true
 
-  // Simular envío a API
-  await new Promise(resolve => setTimeout(resolve, 1500))
+  try {
+    // Extraer lat/long si vienen del GPS
+    let lat = 0
+    let lng = 0
+    if (location.value.includes("Lat:")) {
+      const parts = location.value.split(",")
+      lat = parseFloat(parts[0].replace("Lat:", "").trim())
+      lng = parseFloat(parts[1].replace("Long:", "").trim())
+    }
 
-  // Resetear formulario
-  selectedType.value = ''
-  description.value = ''
-  location.value = ''
-  removeFile()
+    // Crear objeto que coincida con tu esquema de FastAPI
+    const payload = {
+      titulo: titulo.value,
+      descripcion: description.value,
+      imagen: selectedFile.value ? filePreview.value : null,
+      latitud: lat || 20.276,
+      longitud: lng || -97.958,
+      estado: selectedEstado.value || "pendiente",
+      usuario_id: 1,
+      categoria_id: selectedCategory.value
+    }
 
-  // Mostrar confirmación
-  showConfirmation.value = true
-  isSubmitting.value = false
+    const res = await fetch("http://127.0.0.1:8000/incidente/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    })
+
+    if (!res.ok) throw new Error("Error al enviar reporte")
+
+    const data = await res.json()
+    console.log("Incidente creado:", data)
+
+    // Resetear formulario
+    selectedCategory.value = null
+    description.value = ""
+    location.value = ""
+    removeFile()
+
+    // Mostrar confirmación
+    showConfirmation.value = true
+  } catch (err) {
+    console.error(err)
+    alert("Ocurrió un error al enviar el reporte")
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 // Cerrar modal de confirmación
