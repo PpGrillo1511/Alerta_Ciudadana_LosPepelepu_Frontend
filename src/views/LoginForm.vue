@@ -93,6 +93,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import api from '@/services/api'
+import { isAxiosError } from 'axios'
+import { useAuthStore } from '@/stores/auth'
 
 const email = ref('')
 const password = ref('')
@@ -101,20 +104,35 @@ const showPass = ref(false)
 
 const router = useRouter()
 const route = useRoute()
+const auth = useAuthStore()
 
-const login = () => {
-  // Validación mínima
-  if (!email.value || !password.value) return
+const login = async () => {
+  try {
+    const response = await api.post('/login', {
+      correo_electronico: email.value,
+      contrasena: password.value
+    })
 
-  // Guardar un token de prueba para que el guard te deje pasar
-  localStorage.setItem('token', 'dummy-token')
+    const token = response.data.access_token
 
-  // Redirigir a donde intentabas entrar o al dashboard
-  const redirect = (route.query.redirect as string) || '/'
-  router.push(redirect)
+    // Guardar token en el store
+    auth.login(token)
+
+    const redirect = (route.query.redirect as string) || '/dashboard'
+    router.push(redirect)
+
+  } catch (error: unknown) {
+    if (isAxiosError(error)) {
+      alert(error.response?.data?.detail || "Error al iniciar sesión ❌")
+    } else {
+      alert("Error inesperado ⚠️")
+    }
+  }
 }
 
 const goRegister = () => {
   router.push('/register')
 }
 </script>
+
+

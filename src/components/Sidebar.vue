@@ -1,29 +1,32 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth' // importa tu store
 
-const router = useRouter();
+const router = useRouter()
+const auth = useAuthStore() // instancia del store
+
 defineProps({
   open: {
     type: Boolean,
     required: true
   }
-});
+})
 
-const emit = defineEmits(['update:open']);
+const emit = defineEmits(['update:open'])
 
 const closeSidebar = () => {
-  emit('update:open', false);
-};
+  emit('update:open', false)
+}
 
 const navigateTo = (routeName: string) => {
-  router.push({ name: routeName });
-  closeSidebar();
-};
+  router.push({ name: routeName })
+  closeSidebar()
+}
 
 const logout = () => {
-  localStorage.removeItem('token');
-  router.push({ name: 'login' });
-};
+  auth.logout() // usa el store
+  router.push({ name: 'login' }) // redirige al login
+}
 </script>
 <template>
   <!-- Sidebar -->

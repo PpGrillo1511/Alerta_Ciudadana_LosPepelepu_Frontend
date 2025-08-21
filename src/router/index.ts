@@ -1,5 +1,5 @@
 // src/router/index.ts
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -8,7 +8,7 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
     children: [
       { 
-        path: '', 
+        path: 'dashboard', 
         name: 'dashboard', 
         component: () => import('../views/Dashboard.vue'),
         meta: { title: 'Dashboard' }
@@ -57,25 +57,33 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../views/RegisterForm.vue'),
     meta: { title: 'Registro', requiresAuth: false }
   },
-];
+]
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
-});
+})
 
 // Guard de navegación
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('token');
-  
-  // Actualizar el título de la página
-  document.title = to.meta.title ? `${to.meta.title} | Alerta Ciudadana` : 'Alerta Ciudadana';
-  
-  if (to.meta.requiresAuth && !token) {
-    next({ name: 'login', query: { redirect: to.fullPath } });
-  } else {
-    next();
-  }
-});
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token')
 
-export default router;
+  // 🔹 Actualizar el título dinámico
+  document.title = to.meta.title 
+    ? `${to.meta.title} | Alerta Ciudadana` 
+    : 'Alerta Ciudadana'
+
+  // 🔹 Si necesita login y no hay token → redirigir
+  if (to.meta.requiresAuth && !token) {
+    next({ name: 'login', query: { redirect: to.fullPath } })
+  } 
+  // 🔹 Si ya está logueado e intenta ir al login o register → mandarlo al dashboard
+  else if ((to.name === 'login' || to.name === 'register') && token) {
+    next({ name: 'dashboard' })
+  } 
+  else {
+    next()
+  }
+})
+
+export default router

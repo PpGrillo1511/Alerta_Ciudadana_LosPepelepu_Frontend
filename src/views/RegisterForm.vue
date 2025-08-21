@@ -161,10 +161,15 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import api from '@/services/api'
+import type { AxiosError } from 'axios'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
+
+// Campos del formulario
 const firstName = ref('')
 const lastName = ref('')
 const email = ref('')
@@ -175,6 +180,7 @@ const acceptTerms = ref(false)
 const showPassword = ref(false)
 const isLoading = ref(false)
 
+// Validaciones
 const emailError = computed(() => {
   if (email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
     return 'Ingresa un email válido'
@@ -190,31 +196,52 @@ const passwordError = computed(() => {
 })
 
 const isFormValid = computed(() => {
-  return firstName.value &&
-         lastName.value &&
-         email.value &&
-         phone.value &&
-         password.value.length >= 8 &&
-         password.value === confirmPassword.value &&
-         acceptTerms.value &&
-         !emailError.value
+  return Boolean(
+    firstName.value &&
+    lastName.value &&
+    email.value &&
+    phone.value &&
+    password.value.length >= 8 &&
+    password.value === confirmPassword.value &&
+    acceptTerms.value &&
+    !emailError.value
+  )
 })
 
+// Registro
 const handleRegister = async () => {
   if (!isFormValid.value) return
-
   isLoading.value = true
 
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    // Registro
+    await api.post('/register', {
+      nombre: firstName.value,
+      apellidos: lastName.value,
+      correo_electronico: email.value,
+      telefono: phone.value,
+      contrasena: password.value,
+      rol: 'ciudadano'
+    })
 
-    // Redirect to dashboard
-    window.location.href = '/dashboard'
-  } catch (error) {
-    console.error('Register error:', error)
+    // Login automático
+    const loginResp = await api.post('/login', {
+      correo_electronico: email.value,
+      contrasena: password.value
+    })
+
+    localStorage.setItem('token', loginResp.data.access_token)
+
+    // Redirección con Vue Router
+    router.push('/dashboard')
+
+  } catch (error: unknown) {
+    const err = error as AxiosError<{ detail?: string }>
+    alert(err.response?.data?.detail || 'Error al registrarse')
   } finally {
     isLoading.value = false
   }
 }
 </script>
+
+
