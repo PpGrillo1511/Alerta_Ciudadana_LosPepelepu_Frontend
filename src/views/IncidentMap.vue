@@ -3,21 +3,21 @@ import { ref, reactive, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import mapboxgl from 'mapbox-gl'
 
-// Token de Mapbox (pon tu token aquí)
-mapboxgl.accessToken = 'pk.eyJ1IjoiYWJkaWVscml2ZXJlIiwiYSI6ImNtZWhvdXJzYzA2dmEybG9qc3lrNWRtdHEifQ.a3Sjdy_10n17ROclWnlyTg'
+mapboxgl.accessToken = 'pk.eyJ1IjoiYWJkaWVscml2ZXJhIiwiYSI6ImNtZWw2eGJzaDBkcnQyd3BsdjZ0bTl6MmgifQ.FHGRVwgHiBd0-rtAwSYaYQ'
 
-const mapContainer = ref<HTMLDivElement | null>(null)
-let map: mapboxgl.Map
+let map: mapboxgl.Map | null = null
 
 onMounted(() => {
-  if (mapContainer.value) {
-    map = new mapboxgl.Map({
-      container: mapContainer.value,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [-97.9564, 19.9789], // Coordenadas iniciales Xicotepec
-      zoom: 14
-    })
-  }
+  map = new mapboxgl.Map({
+    container: 'map', // 👈 ID que corresponde al <div id="map">
+    style: 'mapbox://styles/mapbox/streets-v11',
+    center: [-97.9671142, 20.2750818], // CDMX
+    zoom: 14
+  })
+})
+
+onBeforeUnmount(() => {
+  if (map) map.remove()
 })
 
 // ─────────────────────────────────────────────────────────────
@@ -54,9 +54,9 @@ const fetchIncidents = async () => {
     incidents.value = data.map((inc: any) => ({
       id: inc.id,
       type: inc.descripcion,
-      location: 'Ubicación desconocida', // si tu API no tiene ubicación
+      location: 'Ubicación desconocida',
       date: inc.fecha_reporte,
-      status: 'Activo', // o ajustar según otra lógica si hay estado
+      status: 'Activo',
       severity: inc.prioridad === 'alta' ? 'Alto' : inc.prioridad === 'media' ? 'Medio' : 'Bajo'
     }))
   } catch (error) {
@@ -127,7 +127,7 @@ const logout = () => {
 onMounted(() => {
   console.log('[v0] Mapa de incidentes inicializado para Xicotepec de Juárez, Puebla')
   fetchIncidents()
-  const interval = setInterval(fetchIncidents, 60000) // refrescar cada 60s
+  const interval = setInterval(fetchIncidents, 60000)
   onBeforeUnmount(() => clearInterval(interval))
 })
 </script>
@@ -260,29 +260,31 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Map Area -->
-            <div class="relative h-96 bg-slate-100">
-              <!-- ...contenido del mapa sin cambios... -->
-              <div class="absolute top-4 left-4 space-y-2">
-                <div class="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 border border-slate-200 shadow-sm">
-                  <div class="w-3 h-3 bg-rose-500 rounded-full"></div>
-                  <span class="text-sm text-slate-700">Incidentes</span>
-                </div>
-                <div class="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 border border-slate-200 shadow-sm">
-                  <div class="w-3 h-3 bg-amber-400 rounded-full"></div>
-                  <span class="text-sm text-slate-700">Calles Peligrosas</span>
-                </div>
-                <div class="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 border border-slate-200 shadow-sm">
-                  <div class="w-3 h-3 bg-rose-600 rounded-full"></div>
-                  <span class="text-sm text-slate-700">Calles Cerradas</span>
-                </div>
-                <div class="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 border border-slate-200 shadow-sm">
-                  <div class="w-3 h-3 bg-indigo-500 rounded-full"></div>
-                  <span class="text-sm text-slate-700">Eventos</span>
-                </div>
-              </div>
-              <div ref="mapContainer" class="w-full h-96"></div>
-            </div>
+    <!-- Map Area -->
+    <div class="relative h-96 bg-slate-100">
+      
+      <!-- Leyenda del mapa -->
+      <div class="absolute top-4 left-4 space-y-2">
+        <div class="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 border border-slate-200 shadow-sm">
+          <div class="w-3 h-3 bg-rose-500 rounded-full"></div>
+          <span class="text-sm text-slate-700">Incidentes</span>
+        </div>
+        <div class="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 border border-slate-200 shadow-sm">
+          <div class="w-3 h-3 bg-amber-400 rounded-full"></div>
+          <span class="text-sm text-slate-700">Calles Peligrosas</span>
+        </div>
+        <div class="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 border border-slate-200 shadow-sm">
+          <div class="w-3 h-3 bg-rose-600 rounded-full"></div>
+          <span class="text-sm text-slate-700">Calles Cerradas</span>
+        </div>
+        <div class="flex items-center space-x-2 bg-white/90 backdrop-blur-sm rounded-xl px-3 py-2 border border-slate-200 shadow-sm">
+          <div class="w-3 h-3 bg-indigo-500 rounded-full"></div>
+          <span class="text-sm text-slate-700">Eventos</span>
+        </div>
+      </div>
+      <div id="map" class="w-full h-full rounded-xl shadow-md"></div>
+
+    </div>
 
             <!-- Incidentes recientes -->
         <div class="p-6 border-t border-slate-200">

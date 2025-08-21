@@ -178,10 +178,10 @@ async function obtenerCalle(lat: number, lon: number) {
   try {
     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
     const data = await res.json();
-    return data.address?.road || "Zona desconocida";
+    return data.address?.road ?? `Lat:${lat.toFixed(3)}, Lon:${lon.toFixed(3)}`;
   } catch (err) {
     console.error("Error al obtener calle:", err);
-    return "Zona desconocida";
+    return `Lat:${lat.toFixed(3)}, Lon:${lon.toFixed(3)}`;
   }
 }
 
@@ -192,11 +192,12 @@ async function fetchZonasCriticas() {
     const data = await res.json();
     if (!data.zonas_criticas) return [];
 
-    // Mapear zonas y obtener nombre de calle para cada una
     const zonasConCalles = await Promise.all(
       data.zonas_criticas.map(async (zona: any) => {
-        // Si tu API ya devuelve lat/lon usa estos, si no, usa zona.zona_id solo
-        const calle = zona.lat && zona.lon ? await obtenerCalle(zona.lat, zona.lon) : `Zona ${zona.zona_id}`;
+        const calle = (zona.lat_centro != null && zona.lng_centro != null)
+          ? await obtenerCalle(zona.lat_centro, zona.lng_centro)
+          : `Zona ${zona.zona_id}`;
+
         return {
           country: calle,
           value: zona.cantidad_incidentes
@@ -218,7 +219,6 @@ async function initChart() {
 
   if (!am5 || !am5xy || !am5themes_Animated) return;
 
-  // Obtener datos de la API con nombres de calles antes de crear el chart
   const chartData = await fetchZonasCriticas();
 
   root = am5.Root.new("chartdiv");
@@ -263,7 +263,6 @@ async function initChart() {
     })
   );
 
-  // Setear datos
   xAxis.data.setAll(chartData);
   series.data.setAll(chartData);
 
@@ -272,7 +271,6 @@ async function initChart() {
 }
 
 onMounted(() => {
-  // Cargar scripts de amCharts en orden
   const loadScript = (src: string) =>
     new Promise<void>((resolve) => {
       const script = document.createElement("script");
@@ -281,7 +279,6 @@ onMounted(() => {
       document.body.appendChild(script);
     });
 
-  // Cargar secuencialmente
   loadScript("https://cdn.amcharts.com/lib/5/index.js")
     .then(() => loadScript("https://cdn.amcharts.com/lib/5/xy.js"))
     .then(() => loadScript("https://cdn.amcharts.com/lib/5/themes/Animated.js"))
