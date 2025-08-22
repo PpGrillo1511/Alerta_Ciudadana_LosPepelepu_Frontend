@@ -32,7 +32,7 @@ const sidebarOpen = ref(false);
                 G
               </div>
               <div>
-                <h1 class="text-2xl font-bold text-white">¡Bienvenid@ Griselda Cabrera Franco!</h1>
+                <h1 class="text-2xl font-bold text-white">¡Bienvenid@</h1>
                 <p class="text-sky-100">Gracias por contribuir a hacer de Xicotepec un lugar más seguro</p>
               </div>
             </div>
