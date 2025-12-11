@@ -125,10 +125,9 @@
             class="w-full px-4 py-3 rounded-xl bg-white border border-slate-300 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
           >
             <option value="" disabled>-- Selecciona el estado --</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="en_revision">En Revisión</option>
-            <option value="atendido">Atendido</option>
-            <option value="descartado">Descartado</option>
+            <option v-for="estado in estados" :key="estado.value" :value="estado.value">
+              {{ estado.label }}
+            </option>
           </select>
         </div>
 
@@ -238,6 +237,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { addIncidentReport } from '@/services/indexedDB'
+import type { IncidentReport } from '@/types/storage'
 
 const router = useRouter()
 
@@ -248,7 +249,7 @@ const description = ref('')
 const selectedDate = ref('')
 const selectedTime = ref('')
 const location = ref('')
-const selectedEstado = ref('')
+const selectedEstado = ref('pendiente')  // Valor por defecto
 
 
 // Archivos
@@ -257,7 +258,23 @@ const selectedFile = ref<File | null>(null)
 const filePreview = ref('')
 
 // Estados
-const categories = ref<{ id: number; nombre: string; descripcion: string }[]>([])
+const categories = ref<{ id: number; nombre: string; descripcion: string }[]>([
+  { id: 1, nombre: 'Robo', descripcion: 'Robo o intento de robo' },
+  { id: 2, nombre: 'Accidente', descripcion: 'Accidente de tránsito' },
+  { id: 3, nombre: 'Incendio', descripcion: 'Incendio o humo sospechoso' },
+  { id: 4, nombre: 'Violencia', descripcion: 'Actos de violencia' },
+  { id: 5, nombre: 'Vandalismo', descripcion: 'Daños a propiedad' },
+  { id: 6, nombre: 'Sospechoso', descripcion: 'Actividad sospechosa' },
+  { id: 7, nombre: 'Otro', descripcion: 'Otro tipo de incidente' }
+])
+
+const estados = ref([
+  { value: 'pendiente', label: 'Pendiente' },
+  { value: 'en_revision', label: 'En Revisión' },
+  { value: 'atendido', label: 'Atendido' },
+  { value: 'descartado', label: 'Descartado' }
+])
+
 const gettingLocation = ref(false)
 const isSubmitting = ref(false)
 const showConfirmation = ref(false)
@@ -268,29 +285,21 @@ const today = new Date().toISOString().split('T')[0]
 // Validación del formulario
 const isFormValid = computed(() => {
   return (
+    titulo.value.trim() &&
     selectedCategory.value !== null &&
     description.value.trim() &&
     selectedDate.value &&
     selectedTime.value &&
-    location.value.trim()
+    location.value.trim() &&
+    selectedEstado.value
   )
 })
 
-// Inicializar fecha, hora y cargar categorías
-onMounted(async () => {
+// Inicializar fecha y hora
+onMounted(() => {
   const now = new Date()
   selectedDate.value = now.toISOString().split('T')[0]
   selectedTime.value = now.toTimeString().slice(0, 5)
-
-  // Obtener categorías desde el backend
-  try {
-    const res = await fetch("http://127.0.0.1:8000/categorias/")
-    if (!res.ok) throw new Error("Error al cargar categorías")
-    categories.value = await res.json()
-  } catch (err) {
-    console.error(err)
-    alert("No se pudieron cargar las categorías")
-  }
 })
 
 // Obtener ubicación actual
@@ -337,71 +346,107 @@ const removeFile = () => {
   if (fileInput.value) fileInput.value.value = ''
 }
 
-// Guardar borrador
-const saveDraft = () => {
-  const draft = {
-    category: selectedCategory.value,
-    description: description.value,
-    date: selectedDate.value,
-    time: selectedTime.value,
-    location: location.value,
-    file: filePreview.value
+// Guardar borrador en IndexedDB
+const saveDraft = async () => {
+  try {
+    // Extraer coordenadas si existen
+    let lat = 18.476
+    let lng = -97.394
+    let address = location.value
+
+    if (location.value.includes('Lat:')) {
+      const parts = location.value.split(',')
+      lat = parseFloat(parts[0].replace('Lat:', '').trim())
+      lng = parseFloat(parts[1].replace('Long:', '').trim())
+      address = `${lat.toFixed(6)}, ${lng.toFixed(6)}`
+    }
+
+    const draft: IncidentReport = {
+      title: titulo.value || 'Borrador sin título',
+      description: description.value,
+      category: selectedCategory.value?.toString() || 'sin categoría',
+      location: {
+        lat,
+        lng,
+        address
+      },
+      photos: filePreview.value ? [filePreview.value] : [],
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      userId: '1'
+    }
+
+    await addIncidentReport(draft)
+    alert('✅ Borrador guardado en IndexedDB')
+  } catch (error) {
+    console.error('Error al guardar borrador:', error)
+    alert('❌ Error al guardar borrador')
   }
-  localStorage.setItem('incidentDraft', JSON.stringify(draft))
-  alert('Borrador guardado exitosamente')
 }
 
-// Enviar reporte a la API
+// Enviar reporte (solo IndexedDB por ahora)
 const submitReport = async () => {
-  if (!isFormValid.value) return
+  if (!isFormValid.value) {
+    console.log('❌ Formulario no válido')
+    return
+  }
+  
   isSubmitting.value = true
+  console.log('📝 Iniciando envío de reporte...')
 
   try {
     // Extraer lat/long si vienen del GPS
-    let lat = 0
-    let lng = 0
+    let lat = 18.476
+    let lng = -97.394
+    let address = location.value
+
     if (location.value.includes("Lat:")) {
       const parts = location.value.split(",")
       lat = parseFloat(parts[0].replace("Lat:", "").trim())
       lng = parseFloat(parts[1].replace("Long:", "").trim())
+      address = `${lat.toFixed(6)}, ${lng.toFixed(6)}`
     }
 
-    // Crear objeto que coincida con tu esquema de FastAPI
-    const payload = {
-      titulo: titulo.value,
-      descripcion: description.value,
-      imagen: selectedFile.value ? filePreview.value : null,
-      latitud: lat || 20.276,
-      longitud: lng || -97.958,
-      estado: selectedEstado.value || "pendiente",
-      usuario_id: 1,
-      categoria_id: selectedCategory.value
+    // Validar que categoria_id no sea null
+    if (!selectedCategory.value) {
+      alert('⚠️ Debes seleccionar una categoría')
+      isSubmitting.value = false
+      return
     }
 
-    const res = await fetch("http://127.0.0.1:8000/incidente/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
+    // Guardar en IndexedDB
+    const reportForIndexedDB: IncidentReport = {
+      title: titulo.value,
+      description: description.value,
+      category: selectedCategory.value?.toString() || 'sin categoría',
+      location: {
+        lat,
+        lng,
+        address
       },
-      body: JSON.stringify(payload)
-    })
-
-    if (!res.ok) throw new Error("Error al enviar reporte")
-
-    const data = await res.json()
-    console.log("Incidente creado:", data)
+      photos: filePreview.value ? [filePreview.value] : [],
+      status: 'sent',
+      createdAt: new Date().toISOString(),
+      userId: '1'
+    }
+    
+    console.log('📦 Datos a guardar en IndexedDB:', reportForIndexedDB)
+    const reportId = await addIncidentReport(reportForIndexedDB)
+    console.log('✅ Reporte guardado en IndexedDB con ID:', reportId)
 
     // Resetear formulario
     selectedCategory.value = null
+    titulo.value = ""
     description.value = ""
     location.value = ""
+    selectedEstado.value = "pendiente"
     removeFile()
 
     // Mostrar confirmación
     showConfirmation.value = true
   } catch (err) {
-    console.error(err)
-    alert("Ocurrió un error al enviar el reporte")
+    console.error('❌ Error completo:', err)
+    alert("Ocurrió un error al guardar el reporte: " + (err as Error).message)
   } finally {
     isSubmitting.value = false
   }

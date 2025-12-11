@@ -92,11 +92,13 @@
               <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Ubicación</th>
               <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Fecha</th>
               <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Estado</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Origen</th>
               <th class="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200">
-            <tr v-for="report in filteredReports" :key="report.id" class="hover:bg-slate-50 transition-colors">
+            <!-- Reportes del Backend -->
+            <tr v-for="report in filteredReports" :key="'backend-' + report.id" class="hover:bg-slate-50 transition-colors">
               <td class="px-6 py-4 whitespace-nowrap">
                 <span :class="[
                   'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border',
@@ -123,11 +125,53 @@
                   {{ report.estado === 'atendido' ? 'Resuelto' : report.estado === 'pendiente' ? 'Pendiente' : 'En progreso' }}
                 </span>
               </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                  🌐 Backend
+                </span>
+              </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button @click="viewReport(report.id)"
                   class="text-cyan-600 hover:text-cyan-700 mr-3 transition-colors">Ver</button>
                 <button v-if="report.estado === 'pendiente'" @click="editReport(report.id)"
                   class="text-indigo-600 hover:text-indigo-700 transition-colors">Editar</button>
+              </td>
+            </tr>
+
+            <!-- Reportes Locales (IndexedDB) -->
+            <tr v-for="localReport in localReports" :key="'local-' + localReport.id" class="hover:bg-slate-50 transition-colors bg-purple-50/30">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border bg-purple-50 text-purple-700 border-purple-200">
+                  {{ localReport.category }}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-sm text-slate-900 max-w-xs truncate">{{ localReport.description || localReport.title }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                {{ localReport.location.address || `${localReport.location.lat}, ${localReport.location.lng}` }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                {{ new Date(localReport.createdAt).toLocaleDateString('es-MX') }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span :class="[
+                  'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border',
+                  localReport.status === 'sent' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                  localReport.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                  'bg-rose-50 text-rose-700 border-rose-200'
+                ]">
+                  {{ localReport.status === 'sent' ? 'Enviado' : localReport.status === 'pending' ? 'Pendiente' : 'Error' }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                  💾 Local
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button @click="deleteLocalReport(localReport.id!)"
+                  class="text-rose-600 hover:text-rose-700 transition-colors">Eliminar</button>
               </td>
             </tr>
           </tbody>
@@ -140,6 +184,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { getAllIncidentReports, deleteIncidentReport } from '@/services/indexedDB'
+import type { IncidentReport } from '@/types/storage'
 
 const router = useRouter()
 
@@ -161,25 +207,49 @@ interface Report {
 const selectedFilter = ref<'all' | 'pending' | 'resolved' | 'in-progress' | 'descart' >('all')
 const searchQuery = ref('')
 const myReports = ref<Report[]>([])
+const localReports = ref<IncidentReport[]>([])
 
+// Obtener reportes del backend
 const fetchReports = async () => {
   try {
     const res = await fetch('http://127.0.0.1:8000/incidentes/')
     const data = await res.json()
     myReports.value = data.filter((r: Report) => r.usuario_id === 1)
   } catch (err) {
-    console.error('Error al obtener reportes:', err)
+    console.error('Error al obtener reportes del backend:', err)
   }
 }
 
-onMounted(fetchReports)
+// Obtener reportes de IndexedDB
+const fetchLocalReports = async () => {
+  try {
+    localReports.value = await getAllIncidentReports()
+    console.log('✅ Reportes locales obtenidos:', localReports.value.length)
+  } catch (err) {
+    console.error('Error al obtener reportes de IndexedDB:', err)
+  }
+}
 
-// Total reportes (incluye todos los estados)
-const totalCount = computed(() => myReports.value.length)
+// Cargar ambas fuentes al montar
+onMounted(async () => {
+  await Promise.all([fetchReports(), fetchLocalReports()])
+})
 
-// Resueltos y pendientes (solo los estados relevantes)
-const resolvedCount = computed(() => myReports.value.filter(r => r.estado === 'atendido').length)
-const pendingCount = computed(() => myReports.value.filter(r => r.estado === 'pendiente').length)
+// Total reportes (incluye backend + IndexedDB)
+const totalCount = computed(() => myReports.value.length + localReports.value.length)
+
+// Resueltos y pendientes (backend + locales)
+const resolvedCount = computed(() => {
+  const backendResolved = myReports.value.filter(r => r.estado === 'atendido').length
+  const localSent = localReports.value.filter(r => r.status === 'sent').length
+  return backendResolved + localSent
+})
+
+const pendingCount = computed(() => {
+  const backendPending = myReports.value.filter(r => r.estado === 'pendiente').length
+  const localPending = localReports.value.filter(r => r.status === 'pending').length
+  return backendPending + localPending
+})
 const effectiveness = computed(() => {
   const relevantReports = myReports.value.filter(r => r.estado === 'atendido' || r.estado === 'pendiente')
   return relevantReports.length ? Math.round((resolvedCount.value / relevantReports.length) * 100) : 0
@@ -220,4 +290,18 @@ const filteredReports = computed(() => {
 
 const viewReport = (id: number) => router.push({ name: 'report-detail', params: { id } })
 const editReport = (id: number) => router.push({ name: 'edit-report', params: { id } })
+
+// Eliminar reporte local
+const deleteLocalReport = async (id: number) => {
+  if (!confirm('¿Estás seguro de eliminar este reporte local?')) return
+  
+  try {
+    await deleteIncidentReport(id)
+    await fetchLocalReports()
+    alert('✅ Reporte eliminado de IndexedDB')
+  } catch (err) {
+    console.error('Error al eliminar reporte:', err)
+    alert('❌ Error al eliminar reporte')
+  }
+}
 </script>

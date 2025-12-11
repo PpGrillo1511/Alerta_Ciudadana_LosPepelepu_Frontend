@@ -43,6 +43,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('../views/MyProfile.vue'),
         meta: { title: 'Mi Perfil' }
       },
+      { 
+        path: 'storage-test', 
+        name: 'storage-test', 
+        component: () => import('../views/StorageTestView.vue'),
+        meta: { title: 'Pruebas de Storage' }
+      },
     ],
   },
   { 
