@@ -106,12 +106,29 @@ const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 
-// Usuario predeterminado para pruebas
-email.value = 'admin@correo.com'
-password.value = '12345678'
+// Usuario predeterminado local
+const DEFAULT_USER = {
+  email: 'admin@correo.com',
+  password: '12345678',
+  token: 'local-token-12345',
+  user: {
+    id: '1',
+    name: 'Administrador',
+    email: 'admin@correo.com'
+  }
+}
 
 const login = async () => {
   try {
+    // Verificar primero si es el usuario local
+    if (email.value === DEFAULT_USER.email && password.value === DEFAULT_USER.password) {
+      auth.login(DEFAULT_USER.token, DEFAULT_USER.user)
+      const redirect = (route.query.redirect as string) || '/dashboard'
+      router.push(redirect)
+      return
+    }
+
+    // Si no es el usuario local, intentar con el backend
     const response = await api.post('/login', {
       correo_electronico: email.value,
       contrasena: password.value
