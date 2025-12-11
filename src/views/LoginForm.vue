@@ -106,6 +106,10 @@ const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 
+// Usuario predeterminado para pruebas
+email.value = 'admin@correo.com'
+password.value = '12345678'
+
 const login = async () => {
   try {
     const response = await api.post('/login', {
