@@ -5,19 +5,21 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     vue(),
-    vueDevTools(),
+
+    // 👇 Solo habilitar DevTools en desarrollo
+    mode === 'development' ? vueDevTools() : null,
+
     VitePWA({
       registerType: 'autoUpdate',
       
       manifest: {
-        name: 'Alerta Ciudadana LosPepelepu', 
-        short_name: 'AlertaCiudadana',         
-        description: 'Aplicación PWA para reportar incidentes ciudadanos', 
-        theme_color: '#ffffff',  
+        name: 'Alerta Ciudadana LosPepelepu',
+        short_name: 'AlertaCiudadana',
+        description: 'Aplicación PWA para reportar incidentes ciudadanos',
+        theme_color: '#ffffff',
         background_color: '#000000ff',
         icons: [
           {
@@ -33,10 +35,11 @@ export default defineConfig({
         ]
       }
     })
-  ],
+  ].filter(Boolean), // 👈 elimina los null en producción
+
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
-})
+}))
