@@ -2,15 +2,11 @@ import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import vueDevTools from 'vite-plugin-vue-devtools'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig(({ mode }) => ({
   plugins: [
     vue(),
-
-    // 👇 Solo habilitar DevTools en desarrollo
-    mode === 'development' ? vueDevTools() : null,
 
     VitePWA({
       registerType: 'autoUpdate',
