@@ -1,5 +1,4 @@
 import { fileURLToPath, URL } from 'node:url'
-
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -7,10 +6,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig(({ mode }) => ({
   plugins: [
     vue(),
-
     VitePWA({
       registerType: 'autoUpdate',
-      
       manifest: {
         name: 'Alerta Ciudadana LosPepelepu',
         short_name: 'AlertaCiudadana',
@@ -31,11 +28,17 @@ export default defineConfig(({ mode }) => ({
         ]
       }
     })
-  ].filter(Boolean), // 👈 elimina los null en producción
+  ].filter(Boolean),
 
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
-    },
+    }
   },
+
+  preview: {
+    host: true, // permite conexiones externas
+    port: process.env.PORT || 4173, // usa el puerto que Render asigna
+    allowedHosts: ['alerta-ciudadana-lospepelepu-frontend.onrender.com'] // tu dominio en Render
+  }
 }))
